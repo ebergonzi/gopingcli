@@ -5,10 +5,15 @@ import (
     "io/ioutil"
     "log"
     "net/http"
+    "github.com/gorilla/mux"
 )
 
 func handler(w http.ResponseWriter, r *http.Request) {
-    response, err := http.Get("http://localhost:8080/")
+    params := mux.Vars(r)
+    dst := params["dst"]
+    log.Println(dst)
+    response, err := http.Get("http://" + dst)
+    
     if err != nil {
     	log.Fatal(err)
     	return
@@ -21,6 +26,10 @@ func handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-    http.HandleFunc("/", handler)
+    rtr := mux.NewRouter()
+    rtr.HandleFunc("/v1/ping/{dst:.*}", handler).Methods("GET")
+
+    http.Handle("/", rtr)
+    log.Println("up")
     http.ListenAndServe(":8081", nil)
 }
